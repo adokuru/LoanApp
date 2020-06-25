@@ -12,8 +12,8 @@ namespace Carbon\Traits;
 
 use Carbon\CarbonInterface;
 use Carbon\CarbonInterval;
+use Carbon\Exceptions\UnitException;
 use DateInterval;
-use InvalidArgumentException;
 
 /**
  * Trait Units.
@@ -124,7 +124,7 @@ trait Units
 
             default:
                 if ($this->localStrictModeEnabled ?? static::isStrictModeEnabled()) {
-                    throw new InvalidArgumentException("Invalid unit for real timestamp add/sub: '$unit'");
+                    throw new UnitException("Invalid unit for real timestamp add/sub: '$unit'");
                 }
 
                 return $this;
@@ -190,9 +190,7 @@ trait Units
         }
 
         if (is_numeric($unit)) {
-            $tempUnit = $value;
-            $value = $unit;
-            $unit = $tempUnit;
+            [$value, $unit] = [$unit, $value];
         }
 
         return $this->addUnit($unit, $value, $overflow);
@@ -221,6 +219,7 @@ trait Units
             'decade' => [static::YEARS_PER_DECADE, 'year'],
             'quarter' => [static::MONTHS_PER_QUARTER, 'month'],
         ];
+
         if (isset($metaUnits[$unit])) {
             [$factor, $unit] = $metaUnits[$unit];
             $value *= $factor;
@@ -228,14 +227,17 @@ trait Units
 
         if ($unit === 'weekday') {
             $weekendDays = static::getWeekendDays();
+
             if ($weekendDays !== [static::SATURDAY, static::SUNDAY]) {
                 $absoluteValue = abs($value);
                 $sign = $value / max(1, $absoluteValue);
                 $weekDaysCount = 7 - min(6, count(array_unique($weekendDays)));
                 $weeks = floor($absoluteValue / $weekDaysCount);
+
                 for ($diff = $absoluteValue % $weekDaysCount; $diff; $diff--) {
                     /** @var static $date */
                     $date = $date->addDays($sign);
+
                     while (in_array($date->dayOfWeek, $weekendDays)) {
                         $date = $date->addDays($sign);
                     }

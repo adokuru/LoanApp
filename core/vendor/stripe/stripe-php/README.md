@@ -53,14 +53,18 @@ If you use Composer, these dependencies should be handled automatically. If you 
 Simple usage looks like:
 
 ```php
-\Stripe\Stripe::setApiKey('sk_test_BQokikJOvBiI2HlWgH4olfQ2');
-$customer = \Stripe\Customer::create([
+$stripe = new \Stripe\StripeClient('sk_test_BQokikJOvBiI2HlWgH4olfQ2');
+$customer = $stripe->customers->create([
     'description' => 'example customer',
     'email' => 'email@example.com',
     'payment_method' => 'pm_card_visa',
 ]);
 echo $customer;
 ```
+
+### Client/service patterns vs legacy patterns
+
+You can continue to use the legacy integration patterns used prior to version [7.33.0](https://github.com/stripe/stripe-php/blob/master/CHANGELOG.md#7330---2020-05-14). Review the [migration guide](https://github.com/stripe/stripe-php/wiki/Migration-to-StripeClient-and-services-in-7.33.0) for the backwards-compatible client/services pattern changes.
 
 ## Documentation
 
@@ -125,7 +129,7 @@ end up there instead of `error_log`:
 You can access the data from the last API response on any object via `getLastResponse()`.
 
 ```php
-$customer = \Stripe\Customer::create([
+$customer = $stripe->customers->create([
     'description' => 'example customer',
 ]);
 echo $customer->getLastResponse()->headers['Request-Id'];
@@ -149,12 +153,12 @@ one that uses [Stripe Connect][connect], it's also possible to set a
 per-request key and/or account:
 
 ```php
-$customers = \Stripe\Customer::all([],[
+$customers = $stripe->customers->all([],[
     'api_key' => 'sk_test_...',
     'stripe_account' => 'acct_...'
 ]);
 
-\Stripe\Customer::retrieve("cus_123456789", [
+$stripe->customers->retrieve('cus_123456789', [], [
     'api_key' => 'sk_test_...',
     'stripe_account' => 'acct_...'
 ]);
